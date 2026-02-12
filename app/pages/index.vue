@@ -1,8 +1,6 @@
 <template>
   <div class="p-5">
-    <div class="text-5xl font-bold">hi from index</div>
-    <NuxtLink to="/about">about</NuxtLink>
-
+    <PageTitle>Welcome</PageTitle>
     <div class="flex items-center gap-4">
       <span>
         {{ counter }}
@@ -15,9 +13,7 @@
       </button>
     </div>
 
-    <p v-if="pending">
-      loading..
-    </p>
+    <p v-if="pending">loading..</p>
 
     <p v-if="error">ERROR OCCURED. {{ error.data?.message }}</p>
 
@@ -41,5 +37,5 @@ useHead({
 // useState()
 const counter = useState<number>("count", () => 0);
 
-const { data, pending, error } = useFetch("/api/hello", {server: false});
+const { data, pending, error } = useFetch("/api/hello", { server: false });
 </script>

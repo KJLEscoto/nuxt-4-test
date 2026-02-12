@@ -1,7 +1,7 @@
 <template>
-  <div>hi from about</div>
+  <div class="p-5">
+    <PageTitle>About</PageTitle>
 
-  <div>
     <span>
       {{ counter }}
     </span>
