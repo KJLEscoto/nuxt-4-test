@@ -22,8 +22,8 @@
     <p v-if="error">ERROR OCCURED. {{ error.data?.message }}</p>
 
     <ul v-else class="list-disc list-inside p-4">
-      <li v-for="fruit in data?.database">
-        {{ fruit }}
+      <li v-for="fruit in data?.fruits" :key="fruit.id">
+        {{ fruit.name }}
       </li>
     </ul>
   </div>
