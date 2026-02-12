@@ -4,3 +4,9 @@
     <NuxtLink to="/about">about</NuxtLink>
   </div>
 </template>
+
+<script lang="ts" setup>
+useHead({
+  title: "Nuxt 4 - Test",
+});
+</script>
