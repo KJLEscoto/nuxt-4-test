@@ -1,20 +1,21 @@
 import { compare } from "bcrypt-ts";
 import { eq } from "drizzle-orm";
 import { usersTable } from "~~/server/db/schema";
+import jwt from "jsonwebtoken";
 
 export default defineEventHandler(async (event) => {
   const { username, password } = await readBody(event);
 
-  if (!(username && password)) {
+  if (!username || !password) {
     throw createError({
       statusCode: 400,
-      message: "Username and password must be provided in the data body.",
+      statusMessage: "Username and password must be provided in the data body.",
     });
   }
 
   const db = useDrizzle();
 
-  const user = db
+  const user = await db
     .select()
     .from(usersTable)
     .where(eq(usersTable.username, username))
@@ -24,15 +25,29 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 404,
-      message: "User could not found.",
+      statusMessage: "User could not be found.",
     });
   }
 
-  if (!(await compare(password, user.password))) {
+  const ok = await compare(password, user.password);
+  if (!ok) {
     throw createError({
       statusCode: 401,
-      message: "Invalid password.",
+      statusMessage: "Invalid password.",
     });
   }
-  return { success: true };
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      username: user.username,
+    },
+    process.env.JWT_PRIVATE!,
+    {
+      algorithm: "HS256",
+      expiresIn: "24hr",
+    },
+  );
+
+  return { token };
 });

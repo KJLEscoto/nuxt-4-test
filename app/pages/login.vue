@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen w-full flex items-center justify-center">
     <form class="w-1/2 space-y-5" @submit.prevent="submitForm">
-      <PageTitle>Create An Account.</PageTitle>
+      <PageTitle>Welcome Back!</PageTitle>
 
       <!-- Username -->
       <section class="flex flex-col gap-2">
@@ -21,19 +21,6 @@
         </p>
       </section>
 
-      <!-- Confirm Password -->
-      <section class="flex flex-col gap-2">
-        <label for="confirmPassword">Confirm Password</label>
-        <input
-          v-model="form.confirmPassword"
-          type="password"
-          id="confirmPassword"
-        />
-        <p v-if="errors.confirmPassword" class="text-red-400 text-sm">
-          {{ errors.confirmPassword }}
-        </p>
-      </section>
-
       <!-- General message -->
       <p
         v-if="message"
@@ -50,6 +37,16 @@
         Register
       </button>
     </form>
+
+    <!-- <div v-if="useCookie('jwt-token').value != null">
+      <button
+        @click="clearToken"
+        type="button"
+        class="px-3 py-2 bg-white text-black cursor-pointer rounded"
+      >
+        Clear Token
+      </button>
+    </div> -->
   </div>
 </template>
 
@@ -57,13 +54,11 @@
 const form = reactive({
   username: "",
   password: "",
-  confirmPassword: "",
 });
 
 const errors = reactive({
   username: "" as string,
   password: "" as string,
-  confirmPassword: "" as string,
 });
 
 const message = ref("");
@@ -72,8 +67,11 @@ const messageType = ref<"success" | "error">("success");
 function clearErrors() {
   errors.username = "";
   errors.password = "";
-  errors.confirmPassword = "";
 }
+
+// function clearToken() {
+//   useCookie("jwt-token").value = null;
+// }
 
 async function submitForm() {
   clearErrors();
@@ -82,34 +80,39 @@ async function submitForm() {
   // Field validation
   if (!form.username.trim()) errors.username = "Username is required.";
   if (!form.password) errors.password = "Password is required.";
-  if (!form.confirmPassword)
-    errors.confirmPassword = "Confirm password is required.";
-  if (
-    form.password &&
-    form.confirmPassword &&
-    form.password !== form.confirmPassword
-  ) {
-    errors.confirmPassword = "Passwords do not match.";
-  }
 
-  if (errors.username || errors.password || errors.confirmPassword) return;
+  if (errors.username || errors.password) return;
 
   try {
-    await $fetch("/api/auth/register", {
+    const result = await $fetch.raw("/api/auth/login", {
       method: "POST",
       body: {
         username: form.username.trim(),
         password: form.password,
       },
+      async onResponseError({ response }) {
+        if (response.status === 401) {
+          messageType.value = "error";
+          message.value = response._data.message;
+          return;
+        }
+      },
     });
 
     messageType.value = "success";
-    message.value = "User created successfully!";
+    message.value = "Sucessfuly Logged In!";
+    // message.value = JSON.stringify(result._data?.token);
+
+    if (result._data && result._data?.token) {
+      useCookie("jwt-token").value = result._data?.token;
+    } else {
+      messageType.value = "error";
+      message.value = "Error occured on token.";
+    }
 
     // optional reset
     form.username = "";
     form.password = "";
-    form.confirmPassword = "";
   } catch (err: any) {
     messageType.value = "error";
     message.value =
