@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       id: user.id,
       username: user.username,
     },
-    process.env.JWT_PRIVATE!,
+    process.env.JWT_SECRET!,
     {
       algorithm: "HS256",
       expiresIn: "24hr",
