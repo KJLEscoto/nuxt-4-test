@@ -61,6 +61,8 @@ const errors = reactive({
   password: "" as string,
 });
 
+const navbarRefreshKey = useState<number>("navbarRefreshKey", () => 0);
+
 const message = ref("");
 const messageType = ref<"success" | "error">("success");
 
@@ -103,16 +105,21 @@ async function submitForm() {
     message.value = "Sucessfuly Logged In!";
     // message.value = JSON.stringify(result._data?.token);
 
-    if (result._data && result._data?.token) {
-      useCookie("jwt-token").value = result._data?.token;
-    } else {
+    if (!(result._data && result._data?.token)) {
       messageType.value = "error";
       message.value = "Error occured on token.";
+      return;
     }
+
+    useCookie("jwt-token").value = result._data?.token;
 
     // optional reset
     form.username = "";
     form.password = "";
+
+    navbarRefreshKey.value++;
+
+    await navigateTo("/");
   } catch (err: any) {
     messageType.value = "error";
     message.value =
